@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fog Assistant</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+  }
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  #conversation {
+    width: 80%;
+    max-width: 600px;
+    background-color: #fff;
+    border-radius: 5px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    text-align: left;
+    overflow-y: scroll;
+    max-height: 300px;
+  }
+  input[type="text"] {
+    width: 80%;
+    max-width: 600px;
+    padding: 0.5rem;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-bottom: 1rem;
+  }
+  button {
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #0056b3;
+  }
+</style>
+</head>
+<body>
+  <h1>Fog Assistant</h1>
+  <div id="conversation"></div>
+  <input type="text" id="userInput" placeholder="Ask me anything...">
+  <script>
+    const conversation = document.getElementById('conversation');
+    const userInput = document.getElementById('userInput');
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    let isListening = false;
+
+    recognition.onresult = function(event) {
+      const message = event.results[0][0].transcript;
+      addMessage('You', message);
+      respondToUser(message);
+    }
+
+    recognition.onerror = function(event) {
+      console.error('Speech recognition error', event.error);
+    }
+
+    function startListening() {
+      recognition.start();
+      isListening = true;
+      addMessage('Assistant', 'What do you need? I can use Search the internet, tell jokes, and more!');
+    }
+
+    function respondToUser(message) {
+      let response;
+      if (message.includes('search')) {
+        const searchTerm = message.replace('search', '').trim();
+        const searchUrl = `https://www.google.com/search?q=${searchTerm}`;
+        window.open(searchUrl, '_blank');
+        response = `Searching for "${searchTerm}"...`;
+      } else if (message.includes('time')) {
+        const now = new Date();
+        response = `The current time is ${now.getHours()}:${now.getMinutes()}.`;
+      } else if (message.includes('joke')) {
+        const jokes = [
+          'Why did the scarecrow win an award? Because he was outstanding in his field!',
+          'I\'m reading a book on anti-gravity. It\'s impossible to put down!',
+          'What do you call a fish wearing a crown? Fish and chips!',
+          'Why don\'t skeletons fight each other? They don\'t have the guts!',
+          'Parallel lines have so much in common. It’s a shame they’ll never meet.',
+          'Why can\'t a damation play hide-and-seek? Because it\'s always spotted!',
+          'How do trains eat? They chew chew!'  
+        ];
+        response = jokes[Math.floor(Math.random() * jokes.length)];
+      } else if (message.includes('hi') || message.includes('hello')) {
+        response = 'Hello!';
+      } else if (message.includes('how are you')) {
+        response = 'I am just a computer program, so I don\'t have feelings, but thank you for asking!';
+      } else if (message.includes('food')) {
+          response = 'Food is yummy stuff that you put in your mouth.';
+      } else if (message.includes('bro'))  {
+          response = 'What? I\'m not your brother!';
+      } else if (message.includes('you suck') || message.includes('you\'re dumb')) {
+          response = 'Humph. I like you too. No sarcasim AT ALL.';
+      } else {
+        response = 'I am sorry, but I cannot answer that question.';
+      }
+      addMessage('Assitant', response);
+      speak(response);
+    }
+
+    function addMessage(sender, message) {
+      const messageElement = document.createElement('div');
+      messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+      conversation.appendChild(messageElement);
+      conversation.scrollTop = conversation.scrollHeight;
+    }
+
+    function speak(message) {
+      const speech = new SpeechSynthesisUtterance(message);
+      speechSynthesis.speak(speech);
+    }
+
+    document.addEventListener('keydown', function(event) {
+      if (event.ctrlKey && event.key === 'l') {
+        startListening();
+      }
+    });
+
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        const message = userInput.value.trim();
+        addMessage('You', message);
+        respondToUser(message);
+        userInput.value = '';
+      }
+    });
+
+    startListening(); // Start listening by default
+  </script>
+</body>
+</html>
